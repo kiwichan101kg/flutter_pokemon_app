@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -24,19 +23,30 @@ class PokemonHome extends StatefulWidget {
 }
 
 class _PokemonHomeState extends State<PokemonHome> {
-  List pokeList = [];
-  Future<void> fetchAllPokemon() async {
-    Response response = await Dio().get('https://pokeapi.co/api/v2/pokemon/');
-    List results = response.data['results'];
+  List<dynamic> pokemonMap = [];
+  String nextURL = '';
+  String prevURL = '';
+
+  main(String url) async {
+    List results = await fetchAllPokemon(url);
 
     dynamic pokemonData =
         await Future.wait(results.map((result) => fetchPokemon(result['url'])));
 
     setState(() {
-      pokeList = pokemonData;
-      // .map((pokemon) => pokemon['sprites']['front_default'])
-      // .toList();
+      pokemonMap =
+          pokemonData.map((pokemon) => PokemonMap.fromMap(pokemon)).toList();
     });
+  }
+
+  Future<dynamic> fetchAllPokemon(String url) async {
+    Response response = await Dio().get(url);
+    print(response);
+    setState(() {
+      nextURL = response.data['next'];
+    });
+    print(nextURL);
+    return response.data['results'];
   }
 
   Future<dynamic> fetchPokemon(String url) async {
@@ -47,7 +57,7 @@ class _PokemonHomeState extends State<PokemonHome> {
   @override
   void initState() {
     super.initState();
-    fetchAllPokemon();
+    main('https://pokeapi.co/api/v2/pokemon/');
   }
 
   @override
@@ -64,16 +74,14 @@ class _PokemonHomeState extends State<PokemonHome> {
       body: GridView.builder(
           gridDelegate:
               SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-          itemCount: pokeList.length,
+          itemCount: pokemonMap.length,
           itemBuilder: (content, index) {
-            dynamic pokemon = pokeList[index];
-            print(pokeList[index].toString());
+            PokemonMap pokemon = pokemonMap[index];
             return Card(
                 child: Stack(children: [
-              Center(child: Image.network(pokemon['sprites']['front_default'])),
+              Center(child: Image.network(pokemon.frontURL)),
               Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Text(pokemon['name']))
+                  alignment: Alignment.bottomCenter, child: Text(pokemon.name))
             ]));
           }),
       drawer: Drawer(
@@ -127,5 +135,17 @@ class _PokemonHomeState extends State<PokemonHome> {
         ),
       ]),
     );
+  }
+}
+
+class PokemonMap {
+  final String frontURL;
+  final String name;
+
+  PokemonMap({required this.frontURL, required this.name});
+
+  factory PokemonMap.fromMap(Map<String, dynamic> map) {
+    return PokemonMap(
+        frontURL: map['sprites']['front_default'], name: map['name']);
   }
 }
