@@ -44,8 +44,9 @@ class _PokemonHomeState extends State<PokemonHome> {
     print(response);
     setState(() {
       nextURL = response.data['next'];
+      prevURL = response.data['previous'] ?? '';
     });
-    print(nextURL);
+    print('実行！！！！！！');
     return response.data['results'];
   }
 
@@ -64,9 +65,40 @@ class _PokemonHomeState extends State<PokemonHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'ポケモン図鑑',
-          style: TextStyle(color: Colors.white, fontSize: 24),
+        title: Column(
+          children: [
+            Text(
+              'ポケモン図鑑',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  child: const Text('<前へ'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green,
+                    onPrimary: Colors.white,
+                    shape: const StadiumBorder(),
+                  ),
+                  onPressed: () {
+                    main(prevURL);
+                  },
+                ),
+                ElevatedButton(
+                  child: const Text('次へ>'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green,
+                    onPrimary: Colors.white,
+                    shape: const StadiumBorder(),
+                  ),
+                  onPressed: () {
+                    main(nextURL);
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
         toolbarHeight: 100,
         backgroundColor: Colors.blue[300],
@@ -77,12 +109,18 @@ class _PokemonHomeState extends State<PokemonHome> {
           itemCount: pokemonMap.length,
           itemBuilder: (content, index) {
             PokemonMap pokemon = pokemonMap[index];
-            return Card(
-                child: Stack(children: [
-              Center(child: Image.network(pokemon.frontURL)),
-              Align(
-                  alignment: Alignment.bottomCenter, child: Text(pokemon.name))
-            ]));
+            return InkWell(
+              onTap: () {
+                print('画像タップ');
+              },
+              child: Card(
+                  child: Stack(children: [
+                Center(child: Image.network(pokemon.frontURL)),
+                Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Text(pokemon.name))
+              ])),
+            );
           }),
       drawer: Drawer(
         child: ListView(
